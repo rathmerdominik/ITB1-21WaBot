@@ -74,7 +74,6 @@ conn.on('chat-update', async chat => {
     if(m.key.fromMe){
         return
     }
-    MessageType, MessageOptions, Mimetype
     if(!m.message) return
 
     const conv = m.message.conversation
