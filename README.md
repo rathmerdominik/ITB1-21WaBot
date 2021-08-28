@@ -4,8 +4,9 @@ Whatsapp Bot for the managment of the ITB1-21 Group
 ## Installation
 To install this bot you need to do the following: 
 ```
-npm install github:adiwajshing/baileys chokidar
 git clone https://github.com/rathmerdominik/ITB1-21WaBot.git
+cd ITB1-21WaBot
+npm install github:adiwajshing/baileys chokidar
 ```
 
 ## Setting up the Environment Variables
