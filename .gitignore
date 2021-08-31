@@ -1,6 +1,7 @@
 # Dirs
 node_modules
 fileroot
+testbatch
 
 # Files
 .env

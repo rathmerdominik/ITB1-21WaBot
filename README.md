@@ -19,6 +19,7 @@ WABOT_GROUPTOSEND=  //The group where updates should be send
 WABOT_ATTACHURL=    //The Url that should be attached to instantly link the new file
 WABOT_SPLITBYUSER=  //The User from which the Changes should be read on 
 ```
+(This structure is subject to change)
 
 ## Setting up the Whatsapp Environment
 
