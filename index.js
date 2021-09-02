@@ -168,3 +168,4 @@ conn.on('close', ({reason, isReconnecting}) => {
     }
 })
 await conn.connect() 
+conn.version = [2, 2134, 9]
