@@ -130,11 +130,9 @@ conn.on('chat-update', async chat => {
                 break;
             case "$meGithub":
                 await conn.sendMessage(m.key.remoteJid, "https://github.com/rathmerdominik/ITB1-21WaBot", MessageType.text)
-                conn.close()
                 break;
             case "$ping":
                 await conn.sendMessage(m.key.remoteJid, "pong", MessageType.text)
-                conn.close()
                 break;
         }
     }
@@ -170,4 +168,3 @@ conn.on('close', ({reason, isReconnecting}) => {
     }
 })
 await conn.connect() 
-
