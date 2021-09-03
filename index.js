@@ -151,9 +151,7 @@ conn.on('close', ({reason, isReconnecting}) => {
     if(reason === "intentional"){
         console.log("Successfully killed myself! Goodbye")
         exit(0)
-    } else {
-        console.log("Oh shit. I died cuz of "+ reason +"! Do i reconnect? " + isReconnecting)
-    }
+    } else console.log("Oh shit. I died cuz of "+ reason +"! Do i reconnect? " + isReconnecting)
 })
 await conn.connect() 
 conn.version = [2, 2134, 9]
