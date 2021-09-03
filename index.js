@@ -4,7 +4,7 @@
 
 import { MessageType, Mimetype, WAConnection } from '@adiwajshing/baileys'
 import { exit } from 'process'
-import * as fs from 'fs'
+import { stat, writeFileSync } from 'fs'
 import * as chokidar from 'chokidar'
 
 
@@ -15,16 +15,18 @@ if(!process.env.WABOT_GROUPTOSEND) throw Error("Set the WABOT_GROUPTOSEND enviro
 if(!process.env.WABOT_ATTACHURL) throw Error("Set the WABOT_ATTACHURL environment variable!")
 if(!process.env.WABOT_SPLITBYUSER) throw Error("Set the WABOT_SPLITBYUSER environment variable!")
 
-const splitByUser = process.env.WABOT_SPLITBYUSER
-const groupToSend = process.env.WABOT_GROUPTOSEND
-const credsPath = process.env.WABOT_CREDSPATH
-const adminNumber = process.env.WABOT_ADMINNUMBER
-const fileRoot = process.env.WABOT_FILEROOT
-const attachURL = process.env.WABOT_ATTACHURL
+const { 
+    WABOT_SPLITBYUSER: splitByUser, 
+    WABOT_GROUPTOSEND: groupToSend,
+    WABOT_CREDSPATH: credsPath,
+    WABOT_ADMINNUMBER: adminRoot,
+    WABOT_FILEROOT: fileRoot,
+    WABOT_ATTACHURL: attachURL
+} = process.env
 
 const conn = new WAConnection() 
 //set usable adminNumber
-const realAdmin = adminNumber + "@s.whatsapp.net"
+const realAdmin = `${adminNumber}@s.whatsapp.net`
 
 
 const debounce = (fn, ms = 0) => {
@@ -36,24 +38,18 @@ const debounce = (fn, ms = 0) => {
 };
 
 //check if credentials exist
-fs.stat(credsPath + "/creds.json", (err) => { //check for Credentials
-    if(err){
-        console.log(err)
-        returnpath
-    } else {
-        //Load the current credentials
-        conn.loadAuthInfo (credsPath + '/creds.json')
-        return
-    }
+fs.stat(`${credsPath}/creds.json`, err => { //check for Credentials
+    if(err) console.log(err)
+    else conn.loadAuthInfo(`${credsPath}creds.json`)
 })
 
 
-conn.on('open', function() {
+conn.on('open', () => {
             let files = []
             const authInfo = conn.base64EncodedAuthInfo()
 
             const send = debounce(() => {
-                if(files.length === 1){
+                if (files.length === 1){
                     conn.sendMessage(
                         groupToSend, 
                         "Neue Datei wurde hochgeladen! \n" + files[0],
@@ -74,8 +70,8 @@ conn.on('open', function() {
                 files = []
             }, 200)
 
-            fs.writeFileSync(credsPath + '/creds.json', JSON.stringify(authInfo, null, '\t'))
-            var watcher = chokidar.watch(fileRoot, {
+            writeFileSync(`${credsPath}/creds.json`, JSON.stringify(authInfo, null, '\t'))
+            const watcher = chokidar.watch(fileRoot, {
                 ignored: /^\./, 
                 persistent: true, 
                 ignoreInitial: true, 
@@ -87,41 +83,35 @@ conn.on('open', function() {
             });
 
             watcher
-            .on('ready', function() {
-                conn.sendMessage(
-                    groupToSend, 
-                    "Monitoring for new Files!",
-                    MessageType.text)
-            })
-            .on('add', (path, stats) => {
-                const basePath = path.split(splitByUser)
-                const genURL = attachURL + basePath[1]
-                const realURL = genURL.replace(' ', "%20")
-                
-                files.push(realURL)
-                send()
-                
-            })
-            .on('error', function(error) {console.error('Error happened', error);})
+                .on('ready', () => {
+                    conn.sendMessage(
+                        groupToSend, 
+                        "Monitoring for new Files!",
+                        MessageType.text)
+                })
+                .on('add', (path, stats) => {
+                    const basePath = path.split(splitByUser)
+                    const genURL = attachURL + basePath[1]
+                    const realURL = genURL.replace(' ', "%20")
+
+                    files.push(realURL)
+                    send()
+                })
+                .on('error', error => console.error('Error happened', error))
 })
 
 conn.on('chat-update', async chat => { 
 
-    if (!chat.hasNewMessage) {
-        return
-    } 
+    if (!chat.hasNewMessage) return
     
     const m = chat.messages.all()[0]
 
-    if(m.key.fromMe){
-        return
-    }
-    if(!m.message) return
+    if (!m.message || m.key.fromMe) return
 
     const conv = m.message.conversation
     const chatNumber = m.key.remoteJid
 
-    if(chat.messages && chat.count){
+    if(chat.messages && chat.count) {
         switch(conv){
             case "$suicide":
                 if(m.participant !== realAdmin) return
@@ -141,9 +131,8 @@ conn.on('chat-update', async chat => {
 //be the gigachad
 conn.on('group-participants-update', async group => {
     console.log(group.jid)    
-    const mygroup = group.jid
-    if(group.action === "add"){conn
-        if(mygroup !== groupToSend){
+    const myGroup = group.jid
+    if(group.action === "add" && myGroup !== groupToSend)
             await conn.sendMessage(
                 group.jid, 
                 fs.readFileSync("./media/gigachad.jpg"),
@@ -154,8 +143,7 @@ conn.on('group-participants-update', async group => {
                     }
                 )
             await conn.groupLeave(group.jid)
-        }
-    }conn
+        
 
 })
 
@@ -163,9 +151,7 @@ conn.on('close', ({reason, isReconnecting}) => {
     if(reason === "intentional"){
         console.log("Successfully killed myself! Goodbye")
         exit(0)
-    } else {
-        console.log("Oh shit. I died cuz of "+ reason +"! Do i reconnect? " + isReconnecting)
-    }
+    } else console.log("Oh shit. I died cuz of "+ reason +"! Do i reconnect? " + isReconnecting)
 })
 await conn.connect() 
 conn.version = [2, 2134, 9]
