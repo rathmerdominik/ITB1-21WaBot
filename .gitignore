@@ -2,10 +2,9 @@
 node_modules
 fileroot
 testbatch
+testfiles
 
 # Files
-.env
-
 creds.json
 package-lock.json
 package.json

@@ -6,17 +6,17 @@
 import { MessageType, Mimetype, WAConnection } from '@adiwajshing/baileys';
 import { exit } from 'process';
 import { stat, readFileSync, writeFileSync } from 'fs';
-import watch from 'chokidar';
+import chokidar from 'chokidar';
 import YAML from 'yaml';
 
-let file;
+let configFile;
 if (process.env.WABOT_YMLCONF) {
-  file = readFileSync(`${process.env.WABOT_YMLCONF}/config.yml`, 'utf8');
+  configFile = readFileSync(`${process.env.WABOT_YMLCONF}/config.yml`, 'utf8');
 } else {
-  file = readFileSync('./config.yml', 'utf-8');
+  configFile = readFileSync('./config.yml', 'utf-8');
 }
-const parsedData = YAML.parse(file);
-
+const parsedData = YAML.parse(configFile);
+console.log(parsedData);
 const {
   credspath: credsPath,
   adminnumber: adminNumber,
@@ -71,7 +71,7 @@ conn.on('open', () => {
   }, 200);
 
   writeFileSync(`${credsPath}/creds.json`, JSON.stringify(authInfo, null, '\t'));
-  const watcher = watch(fileRoot, {
+  const watcher = chokidar.watch(fileRoot, {
     ignored: /^\./,
     persistent: true,
     ignoreInitial: true,
