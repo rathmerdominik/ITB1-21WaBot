@@ -1,5 +1,0 @@
-class TextFunctions {
-    sees(){
-
-    }
-}
