@@ -1,5 +1,5 @@
 # ITB1-21WaBot
-Whatsapp Bot for the managment of the ITB1-21 Group
+Highly modular Whatsapp Bot originally meant for maintaining my School class. 
 
 ## Installation
 To install this bot you need to do the following: 

@@ -83,13 +83,6 @@ conn.on('open', () => {
   });
 
   watcher
-    .on('ready', () => {
-      conn.sendMessage(
-        groupToSend,
-        'Monitoring for new Files!',
-        MessageType.text,
-      );
-    })
     .on('add', (path) => {
       const basePath = path.split(splitByUser);
       const genURL = encodeURI(attachURL + basePath[1]);
@@ -132,12 +125,11 @@ conn.on('chat-update', async (chat) => {
 
 // be the gigachad
 conn.on('group-participants-update', async (group) => {
-  console.log(group.jid);
   const myGroup = group.jid;
   if (group.action === 'add' && myGroup !== groupToSend) {
     await conn.sendMessage(
       group.jid,
-      readFileSync('./media/gigachad.jpg'),
+      readFileSync('./assets/images/gigachad.jpg'),
       MessageType.image,
       {
         mimetype: Mimetype.jpeg,
