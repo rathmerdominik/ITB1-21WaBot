@@ -6,7 +6,7 @@ To install this bot you need to do the following:
 ```
 git clone https://github.com/rathmerdominik/ITB1-21WaBot.git
 cd ITB1-21WaBot
-npm install github:adiwajshing/baileys chokidar
+npm install github:adiwajshing/baileys chokidar node-schedule yaml
 ```
 
 ## Setting up the Environment Variables
