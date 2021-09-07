@@ -16,7 +16,7 @@ if (process.env.WABOT_YMLCONF) {
   configFile = readFileSync('./config.yml', 'utf-8');
 }
 const parsedData = YAML.parse(configFile);
-console.log(parsedData);
+
 const {
   credspath: credsPath,
   adminnumber: adminNumber,
