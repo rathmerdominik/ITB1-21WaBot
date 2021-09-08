@@ -4,12 +4,21 @@
  */
 
 import { MessageType, Mimetype, WAConnection } from '@adiwajshing/baileys';
-import { exit } from 'process';
+import { argv, exit } from 'process';
 import { stat, readFileSync, writeFileSync } from 'fs';
 import chokidar from 'chokidar';
 import YAML from 'yaml';
 
+let testForGroup = false;
+const realArgs = argv.slice(2);
+
+// set the Bot in Group monitor mode
+if (realArgs[0] === '--testForGroup') {
+  testForGroup = true;
+}
+
 let configFile;
+// read content of the config file
 if (process.env.WABOT_YMLCONF) {
   configFile = readFileSync(`${process.env.WABOT_YMLCONF}/config.yml`, 'utf8');
 } else {
@@ -30,9 +39,15 @@ const conn = new WAConnection();
 // set usable adminNumber
 const realAdmin = `${adminNumber}@s.whatsapp.net`;
 
+/**
+ * This function debounces another function
+ *
+ * @param fn function to be called after debounce time has been met
+ * @param ms ms to debounce for
+ */
 const debounce = (fn, ms = 0) => {
   let timeoutId;
-  return function timer(...args) {
+  return function (...args) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => fn.apply(this, args), ms);
   };
@@ -48,6 +63,7 @@ conn.on('open', () => {
   let files = [];
   const authInfo = conn.base64EncodedAuthInfo();
 
+  // Send the filepath to the group. This will also check for batchuploads
   const send = debounce(() => {
     if (files.length === 1) {
       conn.sendMessage(
@@ -70,7 +86,10 @@ conn.on('open', () => {
     files = [];
   }, 200);
 
+  // Write credentials
   writeFileSync(`${credsPath}/creds.json`, JSON.stringify(authInfo, null, '\t'));
+
+  // add a watcher that monitors in the fileroot for new files
   const watcher = chokidar.watch(fileRoot, {
     ignored: /^\./,
     persistent: true,
@@ -82,11 +101,18 @@ conn.on('open', () => {
     },
   });
 
+  // when a new file has been added then prepare the filepath for sending
   watcher
     .on('add', (path) => {
-      const basePath = path.split(splitByUser);
-      const genURL = encodeURI(attachURL + basePath[1]);
-      console.log(genURL);
+      let genURL = '';
+      if (splitByUser) {
+        // attach the url to the filepath to make a fully clickable direct link to the file
+        const basePath = path.split(splitByUser);
+        genURL = encodeURI(attachURL + basePath[1]);
+      } else {
+        genURL = encodeURI(attachURL + path);
+      }
+
       files.push(genURL);
       send();
     })
@@ -107,14 +133,14 @@ conn.on('chat-update', async (chat) => {
     switch (conv) {
       case '$suicide':
 
-        if (m.participant !== realAdmin) return;
+        if (m.participant !== realAdmin) return; // kill the bot when it gets called from the admin
         await conn.sendMessage(chatNumber, 'Killing myself, Goodbye!', MessageType.text);
         conn.close();
         break;
-      case '$meGithub':
+      case '$meGithub': // send the githublink of the bot
         await conn.sendMessage(chatNumber, 'https://github.com/rathmerdominik/ITB1-21WaBot', MessageType.text);
         break;
-      case '$ping':
+      case '$ping': // Bot still alive?
         await conn.sendMessage(chatNumber, 'pong', MessageType.text);
         break;
       default:
@@ -123,9 +149,23 @@ conn.on('chat-update', async (chat) => {
   }
 });
 
-// be the gigachad
+/*
+* be the gigachad. this will make the bot leave a group that is not specified in the 'grouptosend'
+* config option. This will be ignore if the '--testForGroup' has been set.
+*/
 conn.on('group-participants-update', async (group) => {
   const myGroup = group.jid;
+
+  if (group.action === 'add' && testForGroup) {
+    await conn.sendMessage(
+      group.jid,
+      `Hey there, your Group id is: ${group.jid}`,
+      MessageType.text,
+    );
+    console.info(group.jid);
+    return;
+  }
+
   if (group.action === 'add' && myGroup !== groupToSend) {
     await conn.sendMessage(
       group.jid,
@@ -140,11 +180,14 @@ conn.on('group-participants-update', async (group) => {
   await conn.groupLeave(group.jid);
 });
 
+// specify what exactly happened on close
 conn.on('close', ({ reason, isReconnecting }) => {
   if (reason === 'intentional') {
     console.info('Successfully killed myself! Goodbye');
     exit(0);
-  } else console.error(`Oh shit. I died cuz of ${reason}! Do i reconnect? ${isReconnecting}`);
+  } else console.error(`I have died with the following error: ${reason} ! Do i reconnect? ${isReconnecting}`);
 });
+
+// connect the bot and set the WaWEB version
 conn.connect();
 conn.version = [2, 2134, 9];

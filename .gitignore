@@ -9,3 +9,4 @@ creds.json
 package-lock.json
 package.json
 wabotstart.sh
+config.yml
