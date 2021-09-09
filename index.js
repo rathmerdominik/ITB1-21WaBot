@@ -13,17 +13,16 @@ let testForGroup = false;
 const realArgs = argv.slice(2);
 
 // set the Bot in Group monitor mode
-if (realArgs[0] === '--testForGroup') {
-  testForGroup = true;
-}
+if (realArgs[0] === '--testForGroup') testForGroup = true;
 
-let configFile;
 // read content of the config file
-if (process.env.WABOT_YMLCONF) {
-  configFile = readFileSync(`${process.env.WABOT_YMLCONF}/config.yml`, 'utf8');
-} else {
-  configFile = readFileSync('./config.yml', 'utf-8');
-}
+const ymlConf = process.env.WABOT_YMLCONF
+let configFile = readFileSync(
+  ymlConf ? 
+    `${ymlConf}/config.yml` : 
+    './config.json', 
+ 'utf8')
+
 const parsedData = YAML.parse(configFile);
 
 const {
