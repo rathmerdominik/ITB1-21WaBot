@@ -8,6 +8,7 @@ import { argv, exit } from 'process';
 import { stat, readFileSync, writeFileSync } from 'fs';
 import chokidar from 'chokidar';
 import YAML from 'yaml';
+import TimeTable from './timetable/timetable.js';
 
 let testForGroup = false;
 const realArgs = argv.slice(2);
@@ -141,6 +142,9 @@ conn.on('chat-update', async (chat) => {
         break;
       case '$ping': // Bot still alive?
         await conn.sendMessage(chatNumber, 'pong', MessageType.text);
+        break;
+      case '$timeTable':
+        await conn.sendMessage(chatNumber, TimeTable.getTimeTable(), MessageType.text);
         break;
       default:
         break;
